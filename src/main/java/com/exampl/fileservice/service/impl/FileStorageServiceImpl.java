@@ -55,6 +55,26 @@ public class FileStorageServiceImpl implements FileStorageService {
         }
 
     }
+    @Override
+    public void savePng(MultipartFile file) throws IOException {
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.toLowerCase().startsWith("image/")) {
+            throw new IllegalArgumentException("Файл должен быть изображением (image/*).");
+        }
+
+        if (!Files.exists(fileStorageLocation)) {
+            Files.createDirectories(fileStorageLocation);
+        }
+
+        String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+        if (fileName.contains("..")) {
+            throw new IllegalArgumentException("Недопустимое имя файла: " + fileName);
+        }
+
+        Path filePath = fileStorageLocation.resolve(fileName);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+    }
+
 
     @Override
     public Resource loadFileAsResource(String fileName) {
